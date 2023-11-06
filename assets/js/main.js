@@ -28,6 +28,57 @@ const verifyNotifications = (activated)=>{
 
 }
 
+const parseJWT= ()=>{
+  const token = localStorage.getItem('token');
+  const payload = token.split(',')[1];
+  const base64 = payload.replace(/-/g,'+').replace(/_/g,'/');
+  const user = decodeURIComponent(window.atob(base64).split('').map(
+    c=>{
+      return `%${('00' + c.charCodeAt(0).toString(16).slice(-2))}`;
+    })
+      .join('')
+    );
+  return JSON.parse(user);
+}
+
+
+$(document).on('click', "#notifications", async ()=>{
+  try {
+    if(!swReg) return;
+    const subscription = await swReg.pushManager.getSubscription();
+    if (subscription) {
+      subscription.unsubscribe().then(()=>{verifyNotifications(false)})
+      return;
+    }
+    const response = await axiosClient().get('/notification',{
+      responseType: 'arraybuffer'
+    });
+    const data = new Uint8Array(response);
+    swReg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: data
+    }).then(res=>res.toJSON())
+    .then(subs=>{
+      const user = parseJWT();
+      axiosClient.post('/notification', {
+        id: user.id,
+        userDetails: {subs}
+      })
+      .then(res=>verifyNotifications(res['updated']))
+      .catch(res=>{
+        swReg.pushManager.getSubscription()
+        .then(sub=>{
+          sub.unsubscribe().then(()=> verifyNotifications(false))
+        })
+      })
+    })
+
+  } catch (error) {
+    
+  }
+})
+
+
 var fullname = ``;
 var role = ``;
 const changeView = (role) => {
