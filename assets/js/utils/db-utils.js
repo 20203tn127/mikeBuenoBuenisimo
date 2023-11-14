@@ -1,47 +1,55 @@
-//POST => Gestiones de datos de registro p actualizacion pasen por aqui antes de hacer el post real
-
+//POST -> Gestiones de datos registros o updates pasen por aquí
 
 const incidencesDB = new PouchDB('incidences');
 
-const saveIncidence = (incidence)=>{
+const saveInicidences = (incidence) => {
     incidence._id = new Date().toISOString();
-    return incidencesDB.put(incidence).then(result=>{
-        self.registration.sync.register('incidence-post');
+    return incidencesDB.put(incidence).then((res) => {
+        self.registration.sync.register('incidence-status-post');
         const response = {
             registered: true,
             offline: true,
         };
         return new Response(JSON.stringify(response));
-    }).catch(e=>{
-        console.log(e);
+    }).catch((err) => {
+        console.log(err);
         const response = {
             registered: false,
             offline: true,
         };
         return new Response(JSON.stringify(response));
-    })
-}
+    });
+};
 
-
-
-const saveIncidenceToApi = ()=>{
+const saveInicidenceToApi = () => {
     const incidences = [];
-    return incidencesDB.allDocs({include_docs: true}).then(async docs=>{
+    return incidencesDB.allDocs({include_docs: true, descending: true}).then( async (docs) => {
         const {rows} = docs;
-        for (const row of rows) {
+        for(const row of rows){
             const {doc} = row;
             try {
-                //axios => axios({url: 'fullurl', method: '', data: {} })
-                const response = await axiosClient.post('/incidences/save',doc);    
-                if (response['registered']) {
+                //'http://206.189.234.55/api/incidences/pending/2'
+                //erielit
+                //admin
+                const response = await fetch('http://206.189.234.55/api/incidences/status', {
+                    method : 'POST',
+                    body: JSON.stringify(doc),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+                );
+                const data = await response.json();
+
+                if (data['changed']) {
                     incidences.push(response);
                 }
             } catch (error) {
                 console.log(error);
-            }finally{ 
+            } finally {
                 return incidencesDB.remove(doc);
             }
         }
-        return Promise.all(incidences);
-    })
-}
+        return Promise.all([...incidences, getAllIncidencesPending()]);
+    });
+};

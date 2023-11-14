@@ -9,75 +9,72 @@
 let swReg;
 
 if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js').then(swRegRes=>{
-    swReg = swRegRes;
-    swReg.pushManager.getSubscription().then(verifyNotifications)
-  })
+  navigator.serviceWorker.register('/sw.js').then((swRegRes)=>{
+    swReg =swRegRes;
+    swReg.pushManager.getSubscription().then(verifyNotifications);
+  });
 }
 
-const verifyNotifications = (activated)=>{
-
+const verifyNotifications = (activated) =>{
   if (activated) {
-    $('#notifyActivated').css('display', 'block')
-    $('#notifyDeactivated').css('display', 'none')
-  }else{
-    $('#notifyDeactivated').css('display', 'none')
-    $('#notifyActivated').css('display', 'block')
-
+    $('#notifyActivated').css('display', 'block');
+    $('#notifyDeactivated').css('display', 'none');
+  } else {
+    $('#notifyActivated').css('display', 'none');
+    $('#notifyDeactivated').css('display', 'block');
   }
-
 }
 
-const parseJWT= ()=>{
+const parseJWT = () => {
   const token = localStorage.getItem('token');
-  const payload = token.split(',')[1];
-  const base64 = payload.replace(/-/g,'+').replace(/_/g,'/');
-  const user = decodeURIComponent(window.atob(base64).split('').map(
-    c=>{
-      return `%${('00' + c.charCodeAt(0).toString(16).slice(-2))}`;
-    })
-      .join('')
-    );
+  const payload = token.split('.')[1];
+  const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+  const user = decodeURIComponent(
+    window.atob(base64).split('').map((c) => {
+      return `%${('00' + c.charCodeAt(0).toString(16).slice(-2))}`
+    }).join('')
+  );
   return JSON.parse(user);
-}
+};
 
-
-$(document).on('click', "#notifications", async ()=>{
+$(document).on('click', '#notifications', async ()=> {
   try {
-    if(!swReg) return;
     const subscription = await swReg.pushManager.getSubscription();
+
+    if (!swReg) return;
+
     if (subscription) {
-      subscription.unsubscribe().then(()=>{verifyNotifications(false)})
+      subscription.unsuscribe().then(() => verifyNotifications(false));
       return;
     }
-    const response = await axiosClient().get('/notification',{
-      responseType: 'arraybuffer'
+
+    const response = await axiosClient.get('/notification/', {
+      responseType: 'arraybuffer',
     });
+
     const data = new Uint8Array(response);
+
     swReg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: data
-    }).then(res=>res.toJSON())
-    .then(subs=>{
+      applicationServerKey:data
+    }).then((res) => res.toJSON())
+    .then((subscription) => {
       const user = parseJWT();
-      axiosClient.post('/notification', {
+      axiosClient.post('/notification/',{
         id: user.id,
-        userDetails: {subs}
-      })
-      .then(res=>verifyNotifications(res['updated']))
-      .catch(res=>{
-        swReg.pushManager.getSubscription()
-        .then(sub=>{
-          sub.unsubscribe().then(()=> verifyNotifications(false))
-        })
-      })
+        userDetails: {subscription}
+      }).then((res) => verifyNotifications(res['updated']))
+      .catch((res) => {
+        swReg.pushManager.getSubscription().then((subscription) => {
+          subscription.unsuscribe().then(() => verifyNotifications(false));
+        });
+      });
     })
-
+   
   } catch (error) {
     
   }
 })
-
 
 var fullname = ``;
 var role = ``;

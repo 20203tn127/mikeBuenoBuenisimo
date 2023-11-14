@@ -65,14 +65,12 @@
           <!-- End Search Icon-->
           <!-- End Notification Nav -->
           <!-- End Messages Nav -->
-          <li class="nav-item">
+          <li class="nav-item"> 
             <a href="#" class="nav-link nav-icon" id="notifications">
-              <i class="bi bi-bell" id="notifyActivated"></i>
-              <i class="bi bi-bell-slash" id="notifyDeactivated"></i>
-
+              <i class="bi bi-bell" id="notifyActivated"> </i>
+              <i class="bi bi-bell-slash" id="notifyDeactivated"> </i>
             </a>
           </li>
-
           <li class="nav-item dropdown pe-3">
             <a
               class="nav-link nav-profile d-flex align-items-center pe-0"
@@ -196,7 +194,7 @@
                 </div>
               </div>
               <div class="card-body p-3">
-                <table
+                <!-- <table
                   class="table"
                   id="incidencesTable"
                 >
@@ -216,7 +214,24 @@
                       <td>2016-05-25</td>
                     </tr>
                   </tbody>
+                </table> -->
+
+                <table class="table" id="incidencesTable">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Usuario</th>
+                      <th scope="col">Tipo</th>
+                      <th scope="col">Area</th>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Aquí se llenarán los datos de la API -->
+                  </tbody>
                 </table>
+
               </div>
             </div>
           </div>
@@ -255,14 +270,14 @@
           <div class="modal-footer">
             <button
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-success"
               data-bs-dismiss="modal"
             >
               Close
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn btn-secondary"
             >
               Save changes
             </button>
@@ -301,5 +316,6 @@
     <script src="/assets/js/axios/axios-intance.js"></script>
     <script src="/assets/js/toast/toasts.js"></script>
     <script src="/assets/js/admin/admin.home.controller.js"></script>
+    <script src="/assets/js/admin/admin.incidences.controller.js"></script>
   </body>
 </html>
